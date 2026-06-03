@@ -36,6 +36,7 @@ import models
 import agent_models
 import agent_tasks
 import agent
+import schemas
 
 # Create all tables (original and new agentic tables)
 Base.metadata.create_all(bind=engine)
@@ -91,6 +92,17 @@ def approve_teams_override(event_id: int, db: Session = Depends(get_db)):
         "message": f"{len(pending_teams)} teams successfully approved. Welcome emails drafted.",
         "new_event_state": event.state.value if hasattr(event.state, 'value') else event.state
     }
+
+# Override C: Form Teams (to enforce schemas.TeamResponse serialization)
+remove_route_by_path("/events/{event_id}/form-teams/", ["POST"])
+@app.post("/events/{event_id}/form-teams/", response_model=List[schemas.TeamResponse])
+def form_teams_override(event_id: int, db: Session = Depends(get_db)):
+    try:
+        teams = services.generate_teams_algorithmically(event_id, db)
+        # Convert to Pydantic models while the database session is still open
+        return [schemas.TeamResponse.model_validate(team) for team in teams]
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # Override B: Submit Evaluation (triggers score anomaly explanation)
 remove_route_by_path("/events/{event_id}/evaluations/", ["POST"])

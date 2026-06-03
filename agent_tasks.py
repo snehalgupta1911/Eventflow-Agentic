@@ -26,26 +26,48 @@ class MockGeminiModel:
             
         # 3. Conversational Agent - Second Turn (Reporting Tool Success)
         elif "tool execution result" in prompt_lower:
-            return MockResponse(json.dumps({
-                "thought": "The tool successfully executed. I will let the user know.",
-                "reply": "I have successfully updated the team size rules and diversity constraints as requested."
-            }))
+            user_lines = [line for line in prompt_lower.split("\n") if "user:" in line]
+            user_text = " ".join(user_lines) if user_lines else ""
+            if "draft" in user_text or "results" in user_text:
+                return MockResponse(json.dumps({
+                    "thought": "The results notifications were successfully drafted. I will inform the user.",
+                    "reply": "I have successfully drafted the results notifications for all participants."
+                }))
+            else:
+                return MockResponse(json.dumps({
+                    "thought": "The tool successfully executed. I will let the user know.",
+                    "reply": "I have successfully updated the team size rules and diversity constraints as requested."
+                }))
             
         # 4. Conversational Agent - First Turn (Tool Calling)
         elif "eventflow ai, the conversational coordinator" in prompt_lower:
-            return MockResponse(json.dumps({
-                "thought": "The user wants to update the team size rules to min 2, max 5, and max per institution to 2.",
-                "tool_call": {
-                    "name": "update_event_rules",
-                    "args": {
-                        "rules": {
-                            "team_size": {"min": 2, "max": 5},
-                            "diversity": {"max_per_institution": 2}
+            user_lines = [line for line in prompt_lower.split("\n") if "user:" in line]
+            user_text = " ".join(user_lines) if user_lines else ""
+            if "draft" in user_text or "results" in user_text:
+                return MockResponse(json.dumps({
+                    "thought": "The user wants to draft results notifications for all participants.",
+                    "tool_call": {
+                        "name": "draft_communications",
+                        "args": {
+                            "stage": "results_notification"
                         }
-                    }
-                },
-                "reply": "I am updating the team size rules to min 2, max 5, and diversity constraints to max 2 per institution."
-            }))
+                    },
+                    "reply": "I am drafting results notifications for all participants."
+                }))
+            else:
+                return MockResponse(json.dumps({
+                    "thought": "The user wants to update the team size rules to min 2, max 5, and max per institution to 2.",
+                    "tool_call": {
+                        "name": "update_event_rules",
+                        "args": {
+                            "rules": {
+                                "team_size": {"min": 2, "max": 5},
+                                "diversity": {"max_per_institution": 2}
+                            }
+                        }
+                    },
+                    "reply": "I am updating the team size rules to min 2, max 5, and diversity constraints to max 2 per institution."
+                }))
             
         # 5. Welcome Email Draft
         elif "draft a short, energetic welcome email" in prompt_lower:
