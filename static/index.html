@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventFlow AI - Organizer Dashboard</title>
+    <meta name="description" content="Intelligent Event Orchestration Dashboard for Texas Instruments Hackathon - AI-Powered Teams, Anomalies, and Communications.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Modern Design System & Variables */
+        :root {
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-header: 'Outfit', sans-serif;
+            
+            --bg-base: #09090b;
+            --bg-grid: rgba(79, 70, 229, 0.03);
+            
+            /* HSL Theme Colors (Indigo & Violet) */
+            --color-primary: hsl(243, 75%, 59%);
+            --color-primary-light: hsl(243, 75%, 70%);
+            --color-secondary: hsl(262, 83%, 58%);
+            --color-success: hsl(142, 71%, 45%);
+            --color-warning: hsl(38, 92%, 50%);
+            --color-danger: hsl(346, 84%, 50%);
+            
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --text-dark: #27272a;
+            
+            --glass-bg: rgba(20, 20, 25, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-hover: rgba(255, 255, 255, 0.15);
+            
+            --sidebar-width: 280px;
+            --header-height: 80px;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Base Resets & Layout */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-premium);
+        }
+
+        /* App Container Layout */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--glass-border);
+            z-index: 100;
+        }
+
+        #main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        /* Sidebar Elements */
+        .sidebar-brand {
+            padding: 32px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .sidebar-brand h1 {
+            font-family: var(--font-header);
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--color-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-brand svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--color-primary);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 24px 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .menu-item.active {
+            border-color: var(--color-primary);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(124, 58, 237, 0.05));
+        }
+
+        .menu-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Event Selector in Sidebar */
+        .event-selector-box {
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .event-selector-box label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .select-custom {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .select-custom:hover {
+            border-color: var(--glass-border-hover);
+        }
+
+        /* Simulation Controls Panel */
+        .simulator-panel {
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(79, 70, 229, 0.02);
+        }
+
+        .simulator-panel h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-primary-light);
+            margin-bottom: 4px;
+        }
+
+        .btn-sim {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-sim:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--glass-border-hover);
+        }
+
+        /* Header Area */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+        }
+
+        .header-title-box h2 {
+            font-family: var(--font-header);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stage-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid transparent;
+        }
+        
+        .stage-setup { background: rgba(161, 161, 170, 0.15); border-color: rgb(161, 161, 170); color: rgb(228, 228, 231); }
+        .stage-roster_loaded { background: rgba(59, 130, 246, 0.15); border-color: rgb(59, 130, 246); color: rgb(147, 197, 253); }
+        .stage-teams_proposed { background: rgba(245, 158, 11, 0.15); border-color: rgb(245, 158, 11); color: rgb(253, 230, 138); }
+        .stage-active { background: rgba(16, 185, 129, 0.15); border-color: rgb(16, 185, 129); color: rgb(167, 243, 208); }
+        .stage-results_pending { background: rgba(139, 92, 246, 0.15); border-color: rgb(139, 92, 246); color: rgb(216, 180, 254); }
+        .stage-completed { background: rgba(236, 72, 153, 0.15); border-color: rgb(236, 72, 153); color: rgb(252, 207, 233); }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--glass-border-hover);
+        }
+
+        /* Dashboard View Layouts */
+        .dashboard-view {
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .dashboard-view.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card styles */
+        .card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: justify;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 14px;
+        }
+
+        .card-title {
+            font-family: var(--font-header);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Overview & Advisor View specific styling */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary-light);
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: var(--font-header);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* AI Advisor Panel Styling */
+        .advisor-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.03) 100%), var(--glass-bg);
+            border-left: 4px solid var(--color-primary);
+        }
+        
+        .advisor-card.blocked {
+            border-left-color: var(--color-warning);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(124, 58, 237, 0.02) 100%), var(--glass-bg);
+        }
+
+        .advisor-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--color-primary-light);
+            font-weight: 600;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .advisor-header.blocked {
+            color: var(--color-warning);
+        }
+
+        .advisor-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-main);
+            white-space: pre-wrap;
+        }
+
+        /* AI Chat Console Layout */
+        .chat-container {
+            display: flex;
+            height: calc(100vh - var(--header-height) - 100px);
+            gap: 20px;
+        }
+
+        .chat-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-log {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* Bubble Styles */
+        .chat-bubble {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            line-height: 1.5;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: var(--color-primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.agent {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble-thoughts {
+            font-size: 12px;
+            color: var(--color-primary-light);
+            background: rgba(79, 70, 229, 0.08);
+            border-left: 2px solid var(--color-primary);
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .chat-input-bar {
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 12px 18px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            outline: none;
+            font-family: var(--font-main);
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .chat-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
+        }
+
+        .chat-sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* Teams View Elements */
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .team-card {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .team-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .team-name {
+            font-family: var(--font-header);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .team-members-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .member-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .member-meta {
+            color: var(--text-muted);
+            font-size: 11px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .team-rationale {
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px dashed rgba(124, 58, 237, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-main);
+            position: relative;
+        }
+
+        .team-rationale strong {
+            color: var(--color-primary-light);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Anomalies View Table styling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .custom-table th, .custom-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .custom-table th {
+            font-family: var(--font-header);
+            color: var(--text-muted);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .custom-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .deviation-badge {
+            padding: 2px 8px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .anomaly-explanation {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 400px;
+            line-height: 1.4;
+        }
+
+        .btn-action-icon {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-action-icon.resolve {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--color-success);
+            color: var(--color-success);
+        }
+        .btn-action-icon.resolve:hover {
+            background: var(--color-success);
+            color: white;
+        }
+
+        /* Communications list styles */
+        .comms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comm-item {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition-smooth);
+        }
+        
+        .comm-item:hover {
+            border-color: var(--glass-border-hover);
+        }
+
+        .comm-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .comm-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .comm-details {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+        }
+
+        .comm-status-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-draft { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border: 1px solid var(--color-warning); }
+        .status-sent { background: rgba(16, 185, 129, 0.15); color: var(--color-success); border: 1px solid var(--color-success); }
+
+        /* Dialog preview popup */
+        dialog {
+            margin: auto;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            background: var(--bg-base);
+            box-shadow: var(--shadow-premium);
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .dialog-header h3 {
+            font-family: var(--font-header);
+            font-size: 18px;
+        }
+
+        .dialog-body {
+            font-size: 14px;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+
+        /* Utility helper for lists empty state */
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            border: 1px dashed var(--glass-border);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="glass-panel">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <h1>EventFlow AI</h1>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li><a class="menu-item active" data-view="view-overview">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Dashboard Overview
+            </a></li>
+            <li><a class="menu-item" data-view="view-chat">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Conversational AI
+            </a></li>
+            <li><a class="menu-item" data-view="view-teams">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Teams & Rationales
+            </a></li>
+            <li><a class="menu-item" data-view="view-anomalies">
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Score Anomalies
+            </a></li>
+            <li><a class="menu-item" data-view="view-communications">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Communications
+            </a></li>
+        </ul>
+
+        <!-- Event Selector -->
+        <div class="event-selector-box">
+            <label for="event-select">Active Event</label>
+            <select id="event-select" class="select-custom" onchange="handleEventChange()">
+                <option value="">-- No Events --</option>
+            </select>
+        </div>
+
+        <!-- Simulation Utility Panel -->
+        <div class="simulator-panel">
+            <h3>Quick Simulator</h3>
+            <button class="btn-sim" onclick="simulateCreateEvent()">
+                <span style="color: var(--color-primary-light);">➕</span> Create Sample Event
+            </button>
+            <button class="btn-sim" id="sim-roster-btn" onclick="simulateLoadRoster()" disabled>
+                <span>👤</span> Load Roster (6 pax)
+            </button>
+            <button class="btn-sim" id="sim-scores-btn" onclick="simulateScores()" disabled>
+                <span>📊</span> Submit Flagged Scores
+            </button>
+            <button class="btn-sim" id="sim-advance-btn" onclick="simulateAdvanceStage()" disabled>
+                <span>⚡</span> Advance Next Stage
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN VIEW AREA -->
+    <main id="main-content">
+        <!-- GLOBAL APP HEADER -->
+        <header class="glass-panel">
+            <div class="header-title-box">
+                <h2 id="current-event-name">EventFlow Dashboard</h2>
+                <p id="current-event-meta" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Select or create an event in the sidebar to begin.</p>
+            </div>
+            <div class="header-actions">
+                <span id="current-stage-badge" class="stage-badge" style="display: none;">Intake</span>
+                <button class="btn-secondary" onclick="refreshActiveView()">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <!-- VIEW: OVERVIEW & AI ADVISOR -->
+        <section id="view-overview" class="dashboard-view active">
+            <!-- Advisory Block -->
+            <div class="card glass-panel advisor-card" id="advisor-panel">
+                <div class="advisor-header" id="advisor-status-header">
+                    <span>💡</span> Operational AI Advisor
+                </div>
+                <div class="advisor-text" id="advisor-text">
+                    Select an event to run the diagnostics advisor.
+                </div>
+            </div>
+
+            <!-- Stats grid -->
+            <div class="stats-grid">
+                <div class="card glass-panel stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-participants">0</span>
+                        <span class="stat-label">Participants</span>
+                    </div>
+                </div>
+                <div class="card glass-panel stat-card">
+                    <div class="stat-icon" style="background: rgba(124, 58, 237, 0.1); border-color: rgba(124, 58, 237, 0.2); color: var(--color-secondary);">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-teams">0</span>
+                        <span class="stat-label">Teams Formed</span>
+                    </div>
+                </div>
+                <div class="card glass-panel stat-card">
+                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--color-danger);">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-anomalies">0</span>
+                        <span class="stat-label">Unresolved Anomalies</span>
+                    </div>
+                </div>
+                <div class="card glass-panel stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--color-success);">
+                        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-comms">0</span>
+                        <span class="stat-label">Drafts Pending</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: CONVERSATIONAL AI CHAT -->
+        <section id="view-chat" class="dashboard-view">
+            <div class="chat-container">
+                <div class="card glass-panel chat-main">
+                    <div class="card-header">
+                        <h3 class="card-title">EventFlow AI Assistant</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">Status: Online</span>
+                    </div>
+                    <div class="chat-log" id="chat-log">
+                        <div class="chat-bubble agent">
+                            Hello! I am your EventFlow AI Coordinator. You can speak to me in plain English to update configuration rules, form teams, resolve anomalies, or draft stage communications. How can I help you today?
+                        </div>
+                    </div>
+                    <div class="chat-input-bar">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="Type an instruction (e.g. Set team sizes to min 2 and max 3)..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                        <button class="btn-primary" onclick="sendChatMessage()">Send</button>
+                    </div>
+                </div>
+                
+                <!-- Side Panel showing latest executed actions -->
+                <div class="chat-sidebar">
+                    <div class="card glass-panel" style="flex-grow: 1;">
+                        <div class="card-header">
+                            <h3 class="card-title">Agent Tool Executions</h3>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; overflow-y: auto; flex-grow: 1;" id="agent-actions-log">
+                            <div class="empty-state">
+                                <span>🤖</span>
+                                No actions executed yet. Instruct the agent to run tasks.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: TEAMS & RATIONALES -->
+        <section id="view-teams" class="dashboard-view">
+            <div class="card glass-panel">
+                <div class="card-header">
+                    <h3 class="card-title">Formed Teams & AI Rationales</h3>
+                    <button class="btn-primary" id="btn-approve-teams" onclick="approveProposedTeams()" disabled>Approve Proposed Teams</button>
+                </div>
+                <div class="teams-grid" id="teams-grid">
+                    <!-- Loaded dynamically -->
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        <p>No teams formed yet. Form teams by clicking "Form Teams" via Conversational Agent or the simulator.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: SCORE ANOMALIES -->
+        <section id="view-anomalies" class="dashboard-view">
+            <div class="card glass-panel">
+                <div class="card-header">
+                    <h3 class="card-title">Judge Scoring Anomalies</h3>
+                </div>
+                <div class="table-container">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Team ID</th>
+                                <th>Flagged Judge</th>
+                                <th>Judge Score</th>
+                                <th>Panel Average</th>
+                                <th>Deviation</th>
+                                <th>AI Reason & Explanation</th>
+                                <th>Resolution Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="anomalies-table-body">
+                            <!-- Loaded dynamically -->
+                            <tr>
+                                <td colspan="7" class="text-center" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                    No anomalies detected. All grading panels are aligned.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: COMMUNICATIONS -->
+        <section id="view-communications" class="dashboard-view">
+            <div class="card glass-panel">
+                <div class="card-header">
+                    <h3 class="card-title">Stage Communications & Drafts</h3>
+                </div>
+                <div class="comms-list" id="comms-list">
+                    <!-- Loaded dynamically -->
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <p>No communications generated yet. Stage advancement or team approvals will trigger drafts.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- PREVIEW DIALOG -->
+    <dialog id="email-preview-dialog">
+        <div class="dialog-header">
+            <h3 id="preview-subject">Email Draft Preview</h3>
+            <button class="close-btn" onclick="document.getElementById('email-preview-dialog').close()">×</button>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;" id="preview-recipient">
+            To: recipient@example.com
+        </div>
+        <div class="dialog-body" id="preview-body">
+            Email content loading...
+        </div>
+        <div class="dialog-actions">
+            <button class="btn-secondary" onclick="document.getElementById('email-preview-dialog').close()">Cancel</button>
+            <button class="btn-primary" id="btn-dialog-send" onclick="sendActiveCommunication()">Approve & Send</button>
+        </div>
+    </dialog>
+
+    <!-- GLOBAL CLIENT-SIDE LOGIC -->
+    <script>
+        let selectedEventId = "";
+        let chatHistory = [];
+        let activeCommId = "";
+
+        // Startup
+        window.addEventListener("DOMContentLoaded", async () => {
+            await loadEventsDropdown();
+            setupTabNavigation();
+        });
+
+        // Tab Navigation Setup
+        function setupTabNavigation() {
+            document.querySelectorAll(".menu-item").forEach(item => {
+                item.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    // Update menu UI
+                    document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
+                    item.classList.add("active");
+
+                    // Toggle View
+                    const targetViewId = item.getAttribute("data-view");
+                    document.querySelectorAll(".dashboard-view").forEach(v => v.classList.remove("active"));
+                    document.getElementById(targetViewId).classList.add("active");
+
+                    // Load specific data on tab open
+                    refreshActiveView();
+                });
+            });
+        }
+
+        // Fetch Events
+        async function loadEventsDropdown() {
+            try {
+                const res = await fetch("/events/");
+                const events = await res.json();
+                const dropdown = document.getElementById("event-select");
+                
+                dropdown.innerHTML = "";
+                if (events.length === 0) {
+                    dropdown.innerHTML = '<option value="">-- No Events --</option>';
+                    return;
+                }
+
+                events.forEach((e, idx) => {
+                    const opt = document.createElement("option");
+                    opt.value = e.id;
+                    opt.textContent = `${e.id}: ${e.name}`;
+                    dropdown.appendChild(opt);
+                });
+
+                // Pick first one by default if not set
+                if (!selectedEventId) {
+                    selectedEventId = events[0].id;
+                    dropdown.value = selectedEventId;
+                } else {
+                    dropdown.value = selectedEventId;
+                }
+                
+                await handleEventChange();
+            } catch (err) {
+                console.error("Failed to load events list", err);
+            }
+        }
+
+        // Handle active event change
+        async function handleEventChange() {
+            const dropdown = document.getElementById("event-select");
+            selectedEventId = dropdown.value;
+            
+            if (!selectedEventId) {
+                document.getElementById("current-event-name").textContent = "No Event Selected";
+                document.getElementById("current-stage-badge").style.display = "none";
+                setSimulatorButtons(null);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/events/${selectedEventId}`);
+                const event = await res.json();
+                
+                document.getElementById("current-event-name").textContent = event.name;
+                document.getElementById("current-event-meta").textContent = `Event ID: ${event.id} • Created at ${new Date(event.created_at || Date.now()).toLocaleDateString()}`;
+                
+                // Show badge
+                const badge = document.getElementById("current-stage-badge");
+                badge.style.display = "inline-block";
+                badge.textContent = event.state;
+                badge.className = `stage-badge stage-${event.state}`;
+
+                // Set simulator buttons states
+                setSimulatorButtons(event.state);
+
+                // Refresh the active view
+                await refreshActiveView();
+            } catch (err) {
+                console.error("Failed to fetch event data", err);
+            }
+        }
+
+        function setSimulatorButtons(state) {
+            const rosterBtn = document.getElementById("sim-roster-btn");
+            const scoresBtn = document.getElementById("sim-scores-btn");
+            const advanceBtn = document.getElementById("sim-advance-btn");
+
+            if (!state) {
+                rosterBtn.disabled = true;
+                scoresBtn.disabled = true;
+                advanceBtn.disabled = true;
+                return;
+            }
+
+            rosterBtn.disabled = (state !== "setup");
+            scoresBtn.disabled = (state !== "active");
+            advanceBtn.disabled = (state !== "results_pending" && state !== "active" && state !== "roster_loaded" && state !== "teams_proposed");
+        }
+
+        // Refresh details for active tab
+        async function refreshActiveView() {
+            if (!selectedEventId) return;
+
+            const activeTab = document.querySelector(".menu-item.active");
+            const viewId = activeTab.getAttribute("data-view");
+
+            // Global stats update (needed across multiple places)
+            await updateGlobalStats();
+
+            if (viewId === "view-overview") {
+                await loadStageAdvisory();
+            } else if (viewId === "view-teams") {
+                await loadTeamsView();
+            } else if (viewId === "view-anomalies") {
+                await loadAnomaliesView();
+            } else if (viewId === "view-communications") {
+                await loadCommunicationsView();
+            }
+        }
+
+        // Update Overview Statistics
+        async function updateGlobalStats() {
+            try {
+                // Fetch advisory details (contains status stats)
+                const res = await fetch(`/events/${selectedEventId}`);
+                const event = await res.json();
+                
+                // Let's call /events/{id}/teams to get count
+                const tRes = await fetch(`/events/${selectedEventId}/teams`);
+                const teams = await tRes.json();
+                
+                // Fetch anomalies
+                const aRes = await fetch(`/events/${selectedEventId}/evaluations/anomalies`);
+                const anomalies = await aRes.json();
+                const unresolvedAnomalies = anomalies.filter(an => an.resolved === 0);
+
+                // Fetch communications
+                const cRes = await fetch(`/events/${selectedEventId}/communications?status=draft`);
+                const drafts = await cRes.json();
+
+                // Get participant count from first team or fallback
+                let pCount = 0;
+                teams.forEach(t => pCount += (t.members || []).length);
+                if (pCount === 0 && event.state !== "setup") {
+                    // Try to guess from mock
+                    pCount = 6; 
+                }
+
+                document.getElementById("stat-participants").textContent = pCount;
+                document.getElementById("stat-teams").textContent = teams.length;
+                document.getElementById("stat-anomalies").textContent = unresolvedAnomalies.length;
+                document.getElementById("stat-comms").textContent = drafts.length;
+
+                // Toggle approve team button status
+                const approveBtn = document.getElementById("btn-approve-teams");
+                approveBtn.disabled = (event.state !== "teams_proposed");
+            } catch (err) {
+                console.error("Failed to load statistics", err);
+            }
+        }
+
+        // Load AI advisor
+        async function loadStageAdvisory() {
+            const panel = document.getElementById("advisor-panel");
+            const text = document.getElementById("advisor-text");
+            const header = document.getElementById("advisor-status-header");
+            
+            text.innerHTML = "Scanning database and running AI diagnostics...";
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/agent/advisory`);
+                const data = await res.json();
+                
+                text.textContent = data.advisory;
+                
+                // Check if blocked
+                if (data.advisory.toLowerCase().includes("blocked") || data.advisory.toLowerCase().includes("unresolved")) {
+                    panel.classList.add("blocked");
+                    header.innerHTML = "⚠️ Operational AI Advisor - Attention Required";
+                } else {
+                    panel.classList.remove("blocked");
+                    header.innerHTML = "💡 Operational AI Advisor - Pipeline Clear";
+                }
+            } catch (err) {
+                text.textContent = "Failed to load stage advisory diagnostics.";
+            }
+        }
+
+        // Load Teams Rationales View
+        async function loadTeamsView() {
+            const grid = document.getElementById("teams-grid");
+            grid.innerHTML = "Loading event team layouts...";
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/teams`);
+                const teams = await res.json();
+                
+                if (teams.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            <p>No teams formed yet. Set event rules and form teams via AI Chat or simulator.</p>
+                        </div>`;
+                    return;
+                }
+
+                grid.innerHTML = "";
+                teams.forEach(t => {
+                    const card = document.createElement("div");
+                    card.className = "card glass-panel team-card";
+                    
+                    let membersHtml = "";
+                    t.members.forEach(m => {
+                        const skills = m.profile_data.skills || [];
+                        membersHtml += `
+                            <li class="member-item">
+                                <div class="member-header">
+                                    <span>${m.name}</span>
+                                    <span style="color: var(--text-muted); font-size: 11px;">Exp: ${m.profile_data.experience_level || 0} yrs</span>
+                                </div>
+                                <div class="member-meta">
+                                    <span>🏛️ ${m.profile_data.institution || 'Unknown'}</span>
+                                    <span>🛠️ ${skills.join(", ")}</span>
+                                </div>
+                            </li>`;
+                    });
+
+                    card.innerHTML = `
+                        <div class="team-title-row">
+                            <span class="team-name">${t.name}</span>
+                            <span class="stage-badge" style="font-size: 10px; padding: 2px 8px; background: rgba(255,255,255,0.05); border-color: var(--glass-border);">
+                                ${t.is_approved ? 'Approved' : 'Pending Approval'}
+                            </span>
+                        </div>
+                        <ul class="team-members-list">
+                            ${membersHtml}
+                        </ul>
+                        <div class="team-rationale">
+                            <strong>AI Formation Rationale</strong>
+                            "${t.rationale || 'Rationale generation pending...'}"
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                grid.innerHTML = '<p style="color: var(--color-danger); text-align: center;">Failed to fetch teams data.</p>';
+            }
+        }
+
+        // Load Anomalies Table
+        async function loadAnomaliesView() {
+            const tbody = document.getElementById("anomalies-table-body");
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Scanning score matrices...</td></tr>';
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/evaluations/anomalies`);
+                const anomalies = await res.json();
+                
+                if (anomalies.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                No score anomalies detected. Panel variance is clean.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                for (const a of anomalies) {
+                    // Fetch explanation dynamically
+                    let explanationText = "Loading explanation...";
+                    try {
+                        const expRes = await fetch(`/events/${selectedEventId}/evaluations/anomalies/${a.id}/explanation`);
+                        const expData = await expRes.json();
+                        explanationText = expData.explanation;
+                    } catch (e) {
+                        explanationText = "AI explainer unavailable.";
+                    }
+
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">Team ${a.team_id}</td>
+                        <td>${a.judge_id}</td>
+                        <td style="color: var(--color-danger); font-weight: bold;">${a.flagged_score.toFixed(1)}</td>
+                        <td>${a.panel_average.toFixed(1)}</td>
+                        <td><span class="deviation-badge">⚠️ ${a.deviation.toFixed(1)}</span></td>
+                        <td class="anomaly-explanation">${explanationText}</td>
+                        <td>
+                            ${a.resolved ? 
+                                '<span style="color: var(--color-success); font-weight: 600;">Resolved</span>' : 
+                                `<button class="btn-action-icon resolve" onclick="resolveAnomaly(${a.id}, 'dismiss')">Dismiss</button>
+                                 <button class="btn-action-icon resolve" style="background: rgba(124, 58, 237, 0.15); border-color: var(--color-secondary); color: var(--color-secondary); margin-left: 4px;" onclick="resolveAnomaly(${a.id}, 'override')">Override</button>`
+                            }
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="color: var(--color-danger); text-align: center;">Failed to fetch anomaly logs.</td></tr>';
+            }
+        }
+
+        // Load Communications Drafts View
+        async function loadCommunicationsView() {
+            const list = document.getElementById("comms-list");
+            list.innerHTML = "Loading messaging queues...";
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/communications`);
+                const comms = await res.json();
+                
+                if (comms.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            <p>No communications generated yet. Proceeding with stages will create drafts.</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = "";
+                comms.forEach(c => {
+                    const item = document.createElement("div");
+                    item.className = "card glass-panel comm-item";
+                    
+                    item.innerHTML = `
+                        <div class="comm-meta">
+                            <span class="comm-title">${c.subject}</span>
+                            <div class="comm-details">
+                                <span>📧 Recipient: ${c.recipient_email}</span>
+                                <span>🏷️ Stage: ${c.stage}</span>
+                                ${c.sent_at ? `<span>📅 Sent: ${new Date(c.sent_at).toLocaleTimeString()}</span>` : ''}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="comm-status-badge status-${c.status}">${c.status}</span>
+                            <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="previewEmail('${c.id}', '${c.recipient_email}', \`${c.subject.replace(/'/g, "\\'")}\`, \`${c.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`, '${c.status}')">Preview</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch (err) {
+                list.innerHTML = '<p style="color: var(--color-danger); text-align: center;">Failed to load communication logs.</p>';
+            }
+        }
+
+        // Email preview helper
+        function previewEmail(id, recipient, subject, content, status) {
+            activeCommId = id;
+            document.getElementById("preview-subject").textContent = subject;
+            document.getElementById("preview-recipient").textContent = `To: ${recipient}`;
+            document.getElementById("preview-body").textContent = content;
+            
+            const sendBtn = document.getElementById("btn-dialog-send");
+            if (status === "sent") {
+                sendBtn.disabled = true;
+                sendBtn.textContent = "Sent";
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Approve & Send";
+            }
+
+            document.getElementById("email-preview-dialog").showModal();
+        }
+
+        // Submit approved draft
+        async function sendActiveCommunication() {
+            if (!activeCommId || !selectedEventId) return;
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/communications/${activeCommId}/send`, {
+                    method: "POST"
+                });
+                const data = await res.json();
+                
+                document.getElementById("email-preview-dialog").close();
+                await refreshActiveView();
+            } catch (err) {
+                alert("Failed to send communication.");
+            }
+        }
+
+        // Conversational Agent Chat Messaging
+        async function sendChatMessage() {
+            const input = document.getElementById("chat-input");
+            const message = input.value.trim();
+            if (!message || !selectedEventId) return;
+
+            input.value = "";
+            
+            // Add user bubble
+            appendChatBubble("user", message);
+            
+            // Add thinking loading bubble
+            const thinkingId = appendChatBubble("agent", "Thinking...", true);
+
+            try {
+                const res = await fetch(`/events/${selectedEventId}/agent/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message, history: chatHistory })
+                });
+                const data = await res.json();
+                
+                // Remove thinking bubble
+                document.getElementById(thinkingId).remove();
+                
+                // Append AI reply with reasoning
+                appendChatBubble("agent", data.reply, false, data.thought);
+                
+                // Update actions log
+                updateActionsLog(data.actions || []);
+
+                // Update history
+                chatHistory.push({ role: "user", content: message });
+                chatHistory.push({ role: "assistant", content: data.reply });
+
+                // Refresh overall data (since settings/stages might have changed)
+                await handleEventChange();
+            } catch (err) {
+                document.getElementById(thinkingId).remove();
+                appendChatBubble("agent", "Failed to communicate with AI Agent.");
+            }
+        }
+
+        function appendChatBubble(role, content, isHtml = false, thoughts = null) {
+            const log = document.getElementById("chat-log");
+            const bubble = document.createElement("div");
+            const id = "bubble-" + Math.random().toString(36).substr(2, 9);
+            bubble.id = id;
+            bubble.className = `chat-bubble ${role}`;
+            
+            let html = "";
+            if (thoughts) {
+                html += `<div class="chat-bubble-thoughts">💡 Thoughts: ${thoughts}</div>`;
+            }
+            
+            if (isHtml) {
+                html += content;
+            } else {
+                html += content.replace(/\n/g, "<br>");
+            }
+            
+            bubble.innerHTML = html;
+            log.appendChild(bubble);
+            log.scrollTop = log.scrollHeight;
+            return id;
+        }
+
+        function updateActionsLog(actions) {
+            const log = document.getElementById("agent-actions-log");
+            if (actions.length === 0) return;
+            
+            log.innerHTML = "";
+            actions.forEach(a => {
+                const box = document.createElement("div");
+                box.style.borderBottom = "1px solid var(--glass-border)";
+                box.style.paddingBottom = "12px";
+                box.style.marginBottom = "12px";
+                box.innerHTML = `
+                    <div style="font-weight: 600; color: var(--color-primary-light); margin-bottom: 4px;">🛠️ Tool: ${a.tool}</div>
+                    <div style="margin-bottom: 4px;">Args: <pre style="background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px; font-size:10px;">${JSON.stringify(a.args, null, 2)}</pre></div>
+                    <div>Result: <pre style="background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px; font-size:10px;">${JSON.stringify(a.result, null, 2)}</pre></div>
+                `;
+                log.appendChild(box);
+            });
+        }
+
+        // ==========================================
+        // SIMULATOR PANEL ACTIONS
+        // ==========================================
+
+        // 1. Create Event
+        async function simulateCreateEvent() {
+            try {
+                const res = await fetch("/events/?name=TI+Case+Championship", { method: "POST" });
+                const event = await res.json();
+                alert(`Event Created: '${event.name}' with ID ${event.id}`);
+                
+                // Select new event
+                selectedEventId = event.id;
+                await loadEventsDropdown();
+            } catch (e) {
+                alert("Failed to create mock event");
+            }
+        }
+
+        // 2. Load Roster
+        async function simulateLoadRoster() {
+            if (!selectedEventId) return;
+            const roster = [
+                {"name": "Aman ML", "email": `aman.ml.${selectedEventId}@example.com`, "profile_data": {"skills": ["ML", "AI"], "experience_level": 5, "institution": "College A"}},
+                {"name": "Bhavna React", "email": `bhavna.fe.${selectedEventId}@example.com`, "profile_data": {"skills": ["Frontend", "React"], "experience_level": 4, "institution": "College B"}},
+                {"name": "Chirag Backend", "email": `chirag.be.${selectedEventId}@example.com`, "profile_data": {"skills": ["Backend", "FastAPI"], "experience_level": 3, "institution": "College C"}},
+                {"name": "Divya UX", "email": `divya.ux.${selectedEventId}@example.com`, "profile_data": {"skills": ["UI/UX", "Figma"], "experience_level": 5, "institution": "College A"}},
+                {"name": "Eshan Django", "email": `eshan.be.${selectedEventId}@example.com`, "profile_data": {"skills": ["Backend", "Django"], "experience_level": 4, "institution": "College B"}},
+                {"name": "Fiza Flutter", "email": `fiza.fe.${selectedEventId}@example.com`, "profile_data": {"skills": ["Frontend", "Flutter"], "experience_level": 2, "institution": "College C"}}
+            ];
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/participants/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(roster)
+                });
+                const data = await res.json();
+                alert(`Successfully loaded ${data.length} participants into database.`);
+                await handleEventChange();
+            } catch (e) {
+                alert("Failed to load mock roster");
+            }
+        }
+
+        // 3. Approve Teams
+        async function approveProposedTeams() {
+            if (!selectedEventId) return;
+            try {
+                const res = await fetch(`/events/${selectedEventId}/approve-teams/`, { method: "POST" });
+                const data = await res.json();
+                alert(data.message);
+                await handleEventChange();
+            } catch (e) {
+                alert("Failed to approve teams");
+            }
+        }
+
+        // 4. Submit divergent grades to trigger anomalies
+        async function simulateScores() {
+            if (!selectedEventId) return;
+            try {
+                // Get teams to submit score for
+                const tRes = await fetch(`/events/${selectedEventId}/teams`);
+                const teams = await tRes.json();
+                if (teams.length === 0) {
+                    alert("Please form teams first.");
+                    return;
+                }
+
+                const teamId = teams[0].id;
+                
+                // Submit high scores
+                await fetch(`/events/${selectedEventId}/evaluations/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        team_id: teamId,
+                        judge_id: "Judge A",
+                        scores: { "technical": 9.0, "pitch": 9.0 }
+                    })
+                });
+
+                // Submit low scores
+                const res = await fetch(`/events/${selectedEventId}/evaluations/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        team_id: teamId,
+                        judge_id: "Judge B",
+                        scores: { "technical": 1.0, "pitch": 1.0 }
+                    })
+                });
+                const data = await res.json();
+                alert(`Divergent evaluations submitted for Team ${teamId}. Flagged ${data.anomalies_detected.length} anomalies.`);
+                await handleEventChange();
+            } catch (e) {
+                alert("Failed to submit mock scores");
+            }
+        }
+
+        // 5. Advance Stage
+        async function simulateAdvanceStage() {
+            if (!selectedEventId) return;
+            
+            // Guess next stage
+            const dropdown = document.getElementById("event-select");
+            let nextStage = "roster_loaded";
+            const badge = document.getElementById("current-stage-badge");
+            const curState = badge.textContent;
+
+            if (curState === "setup") nextStage = "roster_loaded";
+            else if (curState === "roster_loaded") nextStage = "teams_proposed";
+            else if (curState === "teams_proposed") nextStage = "active";
+            else if (curState === "active") nextStage = "results_pending";
+            else if (curState === "results_pending") nextStage = "completed";
+
+            try {
+                const res = await fetch(`/events/${selectedEventId}/stage`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ next_stage: nextStage })
+                });
+                
+                const data = await res.json();
+                if (res.status !== 200) {
+                    alert(`Blocked: ${data.detail || 'Cannot advance stage'}`);
+                } else {
+                    alert(`Stage successfully advanced to ${nextStage.toUpperCase()}`);
+                }
+                await handleEventChange();
+            } catch (e) {
+                alert("Failed to advance stage");
+            }
+        }
+
+        // 6. Resolve Score Anomaly
+        async function resolveAnomaly(anomalyId, action) {
+            if (!selectedEventId) return;
+            try {
+                const res = await fetch(`/events/${selectedEventId}/evaluations/anomalies/${anomalyId}/resolve`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: action })
+                });
+                const data = await res.json();
+                alert(`Anomaly resolved successfully: ${data.message}`);
+                await refreshActiveView();
+            } catch (e) {
+                alert("Failed to resolve anomaly.");
+            }
+        }
+    </script>
+</body>
+</html>

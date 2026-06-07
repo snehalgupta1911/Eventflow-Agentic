@@ -197,6 +197,36 @@ class TestEventFlowAgentic(unittest.TestCase):
         self.assertIsNotNone(comm_db.sent_at)
         print(f"   -> Communication {comm_id_to_send} sent successfully.")
 
+        # 10. Verify Frontend Dashboard and API integrations
+        print("10. Verifying Frontend Dashboard & new API endpoints...")
+        
+        # Test GET / (serve index.html)
+        res_dashboard = self.client.get("/")
+        self.assertEqual(res_dashboard.status_code, 200)
+        self.assertIn("text/html", res_dashboard.headers.get("content-type", ""))
+        self.assertIn("EventFlow AI - Organizer Dashboard", res_dashboard.text)
+        print("   -> Dashboard HTML serves correctly.")
+        
+        # Test GET /events/
+        res_events = self.client.get("/events/")
+        self.assertEqual(res_events.status_code, 200)
+        events_list = res_events.json()
+        self.assertGreater(len(events_list), 0)
+        self.assertEqual(events_list[0]["id"], event_id)
+        print("   -> GET /events/ returns active events list.")
+
+        # Test GET /events/{event_id}
+        res_event_details = self.client.get(f"/events/{event_id}")
+        self.assertEqual(res_event_details.status_code, 200)
+        self.assertEqual(res_event_details.json()["name"], "Test Hackathon")
+        print("   -> GET /events/{id} returns correct configuration details.")
+
+        # Test GET /events/{event_id}/teams
+        res_teams = self.client.get(f"/events/{event_id}/teams")
+        self.assertEqual(res_teams.status_code, 200)
+        self.assertGreater(len(res_teams.json()), 0)
+        print("   -> GET /events/{id}/teams returns teams lists.")
+
         print("\n--- Test Completed Successfully! ---")
 
 if __name__ == "__main__":

@@ -325,3 +325,59 @@ def agentic_generate_teams(event_id: int, db: Session):
     return teams
 
 services.generate_teams_algorithmically = agentic_generate_teams
+
+
+# ==========================================
+# 5. FRONTEND ROUTING & EXTRA UTILITIES
+# ==========================================
+from fastapi.responses import HTMLResponse
+
+@app.get("/events/")
+def list_events_api(db: Session = Depends(get_db)):
+    """API endpoint to retrieve all available events."""
+    events = db.query(models.Event).order_by(models.Event.id.desc()).all()
+    return [{
+        "id": e.id,
+        "name": e.name,
+        "state": e.state.value if hasattr(e.state, 'value') else e.state,
+        "configuration": e.configuration
+    } for e in events]
+
+@app.get("/events/{event_id}")
+def get_event_api(event_id: int, db: Session = Depends(get_db)):
+    """API endpoint to retrieve a single event's details."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {
+        "id": event.id,
+        "name": event.name,
+        "state": event.state.value if hasattr(event.state, 'value') else event.state,
+        "configuration": event.configuration
+    }
+
+@app.get("/events/{event_id}/teams", response_model=List[schemas.TeamResponse])
+def get_event_teams_api(event_id: int, db: Session = Depends(get_db)):
+    """API endpoint to retrieve all teams and members for an event."""
+    teams = db.query(models.Team).filter(models.Team.event_id == event_id).all()
+    return [schemas.TeamResponse.model_validate(t) for t in teams]
+
+# Serve the Single Page Application dashboard at the root URL
+remove_route_by_path("/", ["GET"]) # Remove health check
+@app.get("/", response_class=HTMLResponse)
+def serve_dashboard():
+    """Serves the main single-page dashboard HTML application."""
+    static_file_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(static_file_path):
+        with open(static_file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return """
+    <html>
+        <head><title>EventFlow Dashboard Error</title></head>
+        <body style="font-family: sans-serif; text-align: center; margin-top: 100px;">
+            <h1>EventFlow Dashboard</h1>
+            <p style="color: red;">Dashboard template static/index.html is missing. Please build the frontend.</p>
+        </body>
+    </html>
+    """
+
