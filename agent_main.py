@@ -161,7 +161,7 @@ def submit_evaluation_override(
 
     config = event.configuration or {}
     weights = config.get("scoring_weights", {"technical": 1.0}) 
-    anomaly_threshold = config.get("anomaly_threshold", 15.0)
+    anomaly_threshold = config.get("anomaly_threshold", 3.0)
 
     # Score Consolidation
     weighted_total = sum(scores.get(category, 0) * weight for category, weight in weights.items())
