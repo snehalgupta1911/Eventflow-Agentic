@@ -868,6 +868,9 @@
             <button class="btn-sim" id="sim-roster-btn" onclick="simulateLoadRoster()" disabled>
                 <span>👤</span> Load Roster (6 pax)
             </button>
+            <button class="btn-sim" id="sim-teams-btn" onclick="simulateFormTeams()" disabled>
+                <span>👥</span> Form Teams
+            </button>
             <button class="btn-sim" id="sim-scores-btn" onclick="simulateScores()" disabled>
                 <span>📊</span> Submit Flagged Scores
             </button>
@@ -1168,17 +1171,20 @@
 
         function setSimulatorButtons(state) {
             const rosterBtn = document.getElementById("sim-roster-btn");
+            const teamsBtn = document.getElementById("sim-teams-btn");
             const scoresBtn = document.getElementById("sim-scores-btn");
             const advanceBtn = document.getElementById("sim-advance-btn");
 
             if (!state) {
                 rosterBtn.disabled = true;
+                teamsBtn.disabled = true;
                 scoresBtn.disabled = true;
                 advanceBtn.disabled = true;
                 return;
             }
 
             rosterBtn.disabled = (state !== "setup");
+            teamsBtn.disabled = (state !== "roster_loaded");
             scoresBtn.disabled = (state !== "active");
             advanceBtn.disabled = (state !== "results_pending" && state !== "active" && state !== "roster_loaded" && state !== "teams_proposed");
         }
@@ -1603,6 +1609,22 @@
                 await handleEventChange();
             } catch (e) {
                 alert("Failed to load mock roster");
+            }
+        }
+
+        // 2b. Form Teams
+        async function simulateFormTeams() {
+            if (!selectedEventId) return;
+            try {
+                const res = await fetch(`/events/${selectedEventId}/form-teams/`, { method: "POST" });
+                if (res.ok) {
+                    alert("Teams formed algorithmically and rationales generated!");
+                    await handleEventChange();
+                } else {
+                    alert("Failed to form teams");
+                }
+            } catch (e) {
+                alert("Failed to form teams");
             }
         }
 
