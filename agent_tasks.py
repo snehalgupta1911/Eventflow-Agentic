@@ -103,7 +103,7 @@ def get_gemini_model():
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         
-        target_model = "gemini-1.5-flash"
+        target_model = "gemini-2.0-flash"
             
         generation_config = {
             "temperature": 0.4,
