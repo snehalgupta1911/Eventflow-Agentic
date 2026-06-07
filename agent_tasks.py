@@ -105,7 +105,43 @@ class QuotaFallbackModel:
             logger.warning(f"Gemini API execution error: {e}. Falling back to MockGeminiModel.")
             return self.mock_model.generate_content(prompt, **kwargs)
 
+class OllamaModel:
+    def __init__(self, model_name="llama3", base_url="http://localhost:11434"):
+        self.model_name = model_name
+        self.base_url = base_url
+
+    def generate_content(self, prompt, **kwargs):
+        class OllamaResponse:
+            def __init__(self, text):
+                self.text = text
+
+        try:
+            import requests
+            url = f"{self.base_url}/api/generate"
+            payload = {
+                "model": self.model_name,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.4
+                }
+            }
+            response = requests.post(url, json=payload, timeout=15)
+            response.raise_for_status()
+            res_json = response.json()
+            text = res_json.get("response", "").strip()
+            return OllamaResponse(text)
+        except Exception as e:
+            logger.warning(f"Ollama execution error (model: {self.model_name}): {e}. Falling back to MockGeminiModel.")
+            return MockGeminiModel().generate_content(prompt, **kwargs)
+
 def get_gemini_model():
+    if os.getenv("USE_OLLAMA") == "true":
+        model_name = os.getenv("OLLAMA_MODEL", "llama3")
+        base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        logger.info(f"Using Ollama local model: {model_name} at {base_url}")
+        return OllamaModel(model_name=model_name, base_url=base_url)
+
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         logger.warning("GEMINI_API_KEY not found in environment. Using MockGeminiModel.")

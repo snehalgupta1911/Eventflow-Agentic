@@ -229,5 +229,47 @@ class TestEventFlowAgentic(unittest.TestCase):
 
         print("\n--- Test Completed Successfully! ---")
 
+    def test_ollama_model_fallback_and_integration(self):
+        print("\n--- Running Ollama Model Integration and Fallback Test ---")
+        import agent_tasks
+        from unittest.mock import patch
+        
+        # Save old environment
+        old_use_ollama = os.environ.get("USE_OLLAMA")
+        os.environ["USE_OLLAMA"] = "true"
+        
+        try:
+            # 1. Get model when USE_OLLAMA=true
+            model = agent_tasks.get_gemini_model()
+            self.assertIsInstance(model, agent_tasks.OllamaModel)
+            print("   -> Successfully retrieved OllamaModel with USE_OLLAMA=true")
+            
+            # 2. Test fallback when Ollama is unreachable (requests raises connection error)
+            with patch("requests.post") as mock_post:
+                mock_post.side_effect = Exception("Connection refused")
+                # Prompt that would trigger a specific mock response
+                response = model.generate_content("draft a short, energetic welcome email")
+                self.assertIn("Welcome to the event!", response.text)
+                print("   -> Graceful fallback to MockGeminiModel verified on connection failure.")
+                
+            # 3. Test successful Ollama response mapping
+            with patch("requests.post") as mock_post:
+                class MockResponse:
+                    def json(self):
+                        return {"response": "Custom local Ollama response."}
+                    def raise_for_status(self):
+                        pass
+                mock_post.return_value = MockResponse()
+                response = model.generate_content("hello")
+                self.assertEqual(response.text, "Custom local Ollama response.")
+                print("   -> Successful Ollama API response mapping verified.")
+                
+        finally:
+            # Restore environment
+            if old_use_ollama is not None:
+                os.environ["USE_OLLAMA"] = old_use_ollama
+            else:
+                os.environ.pop("USE_OLLAMA", None)
+
 if __name__ == "__main__":
     unittest.main()
