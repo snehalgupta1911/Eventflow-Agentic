@@ -67,11 +67,29 @@ def get_event_status(event_id: int, db: Session) -> dict:
         }
     }
 
-def update_event_rules(event_id: int, rules: dict, db: Session) -> dict:
+def update_event_rules(event_id: int, rules: dict = None, db: Session = None, **kwargs) -> dict:
     """Updates the team formation rules (e.g. team_size: {min, max}, diversity constraints)."""
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if not event:
         return {"error": f"Event {event_id} not found."}
+        
+    if rules is None:
+        rules = {}
+        
+    # Handle flat arguments if the model failed to nest them inside a rules dictionary
+    if "team_size" in kwargs:
+        rules["team_size"] = kwargs["team_size"]
+    if "diversity" in kwargs:
+        rules["diversity"] = kwargs["diversity"]
+    if "min" in kwargs or "max" in kwargs:
+        team_size = dict(rules.get("team_size") or {})
+        if "min" in kwargs: team_size["min"] = kwargs["min"]
+        if "max" in kwargs: team_size["max"] = kwargs["max"]
+        rules["team_size"] = team_size
+    if "max_per_institution" in kwargs:
+        diversity = dict(rules.get("diversity") or {})
+        diversity["max_per_institution"] = kwargs["max_per_institution"]
+        rules["diversity"] = diversity
         
     # Copy configuration dict to trigger SQLAlchemy modification detection
     config = dict(event.configuration or {})
