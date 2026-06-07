@@ -6,7 +6,8 @@ from fastapi.testclient import TestClient
 # Ensure the local path is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Set Gemini API key to a dummy value so it runs MockGeminiModel for testing if not set
+# Set test database URL and dummy API key before importing app
+os.environ["DATABASE_URL"] = "sqlite:///./test_eventflow.db"
 if not os.environ.get("GEMINI_API_KEY"):
     os.environ["GEMINI_API_KEY"] = ""
 
@@ -28,9 +29,9 @@ class TestEventFlowAgentic(unittest.TestCase):
     def tearDownClass(cls):
         cls.db.close()
         # Clean up database file if created
-        if os.path.exists("./eventflow.db"):
+        if os.path.exists("./test_eventflow.db"):
             try:
-                os.remove("./eventflow.db")
+                os.remove("./test_eventflow.db")
             except Exception:
                 pass
 
