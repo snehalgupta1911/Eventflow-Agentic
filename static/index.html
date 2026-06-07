@@ -1475,7 +1475,11 @@
         async function sendChatMessage() {
             const input = document.getElementById("chat-input");
             const message = input.value.trim();
-            if (!message || !selectedEventId) return;
+            if (!message) return;
+            if (!selectedEventId) {
+                alert("No active event selected. Please create a sample event first using the '➕ Create Sample Event' button in the left sidebar under 'Quick Simulator'.");
+                return;
+            }
 
             input.value = "";
             
