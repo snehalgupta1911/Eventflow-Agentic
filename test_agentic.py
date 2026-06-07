@@ -228,6 +228,23 @@ class TestEventFlowAgentic(unittest.TestCase):
         self.assertGreater(len(res_teams.json()), 0)
         print("   -> GET /events/{id}/teams returns teams lists.")
 
+        # Test GET /events/{event_id}/participants
+        res_parts = self.client.get(f"/events/{event_id}/participants")
+        self.assertEqual(res_parts.status_code, 200)
+        parts_list = res_parts.json()
+        self.assertEqual(len(parts_list), 6)
+        self.assertIsNotNone(parts_list[0]["token"])
+        print("   -> GET /events/{id}/participants returns roster directory.")
+
+        # Test GET /participants/portal/{token} (serves beautiful HTML portal)
+        p_token = parts_list[0]["token"]
+        res_portal = self.client.get(f"/participants/portal/{p_token}")
+        self.assertEqual(res_portal.status_code, 200)
+        self.assertIn("text/html", res_portal.headers.get("content-type", ""))
+        self.assertIn("Participant Status Portal", res_portal.text)
+        self.assertIn("Welcome,", res_portal.text)
+        print("   -> GET /participants/portal/{token} serves HTML status page.")
+
         print("\n--- Test Completed Successfully! ---")
 
     def test_ollama_model_fallback_and_integration(self):

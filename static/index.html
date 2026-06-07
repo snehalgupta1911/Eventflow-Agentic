@@ -913,6 +913,10 @@
                 <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Communications
             </a></li>
+            <li><a class="menu-item" data-view="view-participants">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Participants & Portals
+            </a></li>
         </ul>
 
         <!-- Event Selector -->
@@ -1128,6 +1132,38 @@
                 </div>
             </div>
         </section>
+
+        <!-- VIEW: PARTICIPANTS & PORTALS -->
+        <section id="view-participants" class="dashboard-view">
+            <div class="card glass-panel">
+                <div class="card-header">
+                    <h3 class="card-title">Enrolled Participants & Magic Link Portals</h3>
+                </div>
+                <div class="table-container">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Participant ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Institution</th>
+                                <th>Skills</th>
+                                <th>Team Assignment</th>
+                                <th>Action / Preview Portal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participants-table-body">
+                            <!-- Loaded dynamically -->
+                            <tr>
+                                <td colspan="7" class="text-center" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                    No participants loaded. Load roster via simulator or coordinator AI.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- PREVIEW DIALOG -->
@@ -1303,6 +1339,8 @@
                 await loadAnomaliesView();
             } else if (viewId === "view-communications") {
                 await loadCommunicationsView();
+            } else if (viewId === "view-participants") {
+                await loadParticipantsView();
             }
         }
 
@@ -1536,6 +1574,52 @@
                 });
             } catch (err) {
                 list.innerHTML = '<p style="color: var(--color-danger); text-align: center;">Failed to load communication logs.</p>';
+            }
+        }
+
+        // Load Participants Directory View
+        async function loadParticipantsView() {
+            const tbody = document.getElementById("participants-table-body");
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Retrieving participant directory...</td></tr>';
+            
+            try {
+                const res = await fetch(`/events/${selectedEventId}/participants`);
+                const participants = await res.json();
+                
+                if (participants.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                No participants enrolled in this event.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                participants.forEach(p => {
+                    const tr = document.createElement("tr");
+                    const skillsBadge = (p.skills || []).map(s => `<span class="stage-badge" style="font-size: 10px; margin-right: 4px; padding: 2px 6px; background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.2); color: var(--color-primary-light);">${s}</span>`).join("");
+                    
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>${p.email}</td>
+                        <td>${p.institution}</td>
+                        <td>${skillsBadge}</td>
+                        <td>
+                            <span class="stage-badge" style="background: rgba(255, 255, 255, 0.05); border-color: var(--glass-border); color: var(--text-main);">
+                                ${p.team_name}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/participants/portal/${p.token}" target="_blank" class="btn-action-icon resolve" style="text-decoration: none; display: inline-block; text-align: center;">Preview Portal View</a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="color: var(--color-danger); text-align: center;">Failed to fetch participant roster.</td></tr>';
             }
         }
 

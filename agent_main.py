@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from fastapi import Depends, HTTPException, Body, Query, BackgroundTasks
 from pydantic import BaseModel
@@ -402,6 +402,293 @@ def get_event_teams_api(event_id: int, db: Session = Depends(get_db)):
     """API endpoint to retrieve all teams and members for an event."""
     teams = db.query(models.Team).filter(models.Team.event_id == event_id).all()
     return [schemas.TeamResponse.model_validate(t) for t in teams]
+
+@app.get("/events/{event_id}/participants")
+def get_event_participants(event_id: int, db: Session = Depends(get_db)):
+    """API endpoint to retrieve all participants of an event with magic link token."""
+    participants = db.query(models.Participant).filter(models.Participant.event_id == event_id).all()
+    res = []
+    
+    from main import SECRET_KEY, ALGORITHM
+    import jwt
+    
+    for p in participants:
+        team_name = "Unassigned"
+        if p.team_id:
+            team = db.query(models.Team).filter(models.Team.id == p.team_id).first()
+            if team:
+                team_name = team.name
+                
+        payload = {
+            "sub": str(p.id),
+            "role": "participant",
+            "event_id": p.event_id,
+            "exp": datetime.utcnow() + timedelta(days=7)
+        }
+        token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        
+        res.append({
+            "id": p.id,
+            "name": p.name,
+            "email": p.email,
+            "institution": p.profile_data.get("institution", "Unknown") if p.profile_data else "Unknown",
+            "skills": p.profile_data.get("skills", []) if p.profile_data else [],
+            "experience_level": p.profile_data.get("experience_level", 0) if p.profile_data else 0,
+            "team_name": team_name,
+            "token": token
+        })
+    return res
+
+# Override D: Serve beautiful HTML page for Participant Portal
+remove_route_by_path("/participants/portal/{token}", ["GET"])
+
+@app.get("/participants/portal/{token}", response_class=HTMLResponse)
+def participant_portal_status_override(token: str, db: Session = Depends(get_db)):
+    """Decodes the participant JWT and renders a styled status portal page."""
+    import jwt
+    from main import SECRET_KEY, ALGORITHM
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        participant_id = int(payload.get("sub"))
+    except Exception:
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Invalid Token - EventFlow</title>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #030306; color: #f8fafc; text-align: center; padding-top: 100px; }
+                .card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; max-width: 500px; margin: auto; backdrop-filter: blur(20px); }
+                h1 { color: #f43f5e; margin-bottom: 20px; }
+                p { color: #94a3b8; line-height: 1.6; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>Authentication Failed</h1>
+                <p>Token has expired or is invalid. Please contact the event organizer for a new magic link.</p>
+            </div>
+        </body>
+        </html>
+        """, status_code=401)
+        
+    participant = db.query(models.Participant).filter(models.Participant.id == participant_id).first()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+        
+    event = db.query(models.Event).filter(models.Event.id == participant.event_id).first()
+    
+    # Fetch Team Assignment (BUT ONLY IF APPROVED)
+    team_info = "Assignment Pending"
+    rationale = None
+    teammates = []
+    if participant.team_id:
+        team = db.query(models.Team).filter(models.Team.id == participant.team_id).first()
+        if team and team.is_approved == 1:
+            team_info = team.name
+            rationale = team.rationale
+            teammates = [m.name for m in team.members if m.id != participant.id]
+            
+    # Log the login
+    from main import log_activity
+    log_activity(db, event.id, "PORTAL_ACCESSED", f"Participant_{participant.id}", {})
+    
+    # Render premium status page
+    teammates_html = "".join([f"<li>{name}</li>" for name in teammates]) if teammates else "<li>No other teammates assigned yet</li>"
+    
+    team_section = ""
+    if team_info == "Assignment Pending":
+        team_section = f"""
+        <div class="team-card pending">
+            <h2>Team Assignment</h2>
+            <div class="status-msg">Your team assignment is currently being processed by the AI coordinator and is awaiting organizer approval. Please check back shortly.</div>
+        </div>
+        """
+    else:
+        team_section = f"""
+        <div class="team-card">
+            <h2>Your Team: <span class="highlight">{team_info}</span></h2>
+            <div class="teammates-box">
+                <h3>Teammates</h3>
+                <ul>
+                    {teammates_html}
+                </ul>
+            </div>
+            {f'''
+            <div class="rationale-box">
+                <h3>AI Formation Rationale</h3>
+                <p>"{rationale}"</p>
+            </div>
+            ''' if rationale else ""}
+        </div>
+        """
+        
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EventFlow - Participant Status Portal</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root {{
+                --bg-base: #030306;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --color-primary: hsl(250, 89%, 60%);
+                --color-primary-light: hsl(250, 95%, 75%);
+                --color-secondary: hsl(186, 100%, 45%);
+                --glass-bg: rgba(8, 8, 12, 0.7);
+                --glass-border: rgba(255, 255, 255, 0.05);
+                --radius-lg: 20px;
+                --radius-md: 14px;
+            }}
+            * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+            body {{
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                background: var(--bg-base);
+                background-image: 
+                    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 55%),
+                    radial-gradient(at 100% 0%, rgba(0, 240, 255, 0.05) 0px, transparent 50%),
+                    linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+                background-size: 100% 100%, 100% 100%, 40px 40px;
+                color: var(--text-main);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }}
+            .portal-container {{
+                max-width: 600px;
+                width: 100%;
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-lg);
+                padding: 40px;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }}
+            header {{
+                border-bottom: 1px solid var(--glass-border);
+                padding-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }}
+            header h1 {{
+                font-family: 'Outfit', sans-serif;
+                font-size: 28px;
+                font-weight: 700;
+                background: linear-gradient(135deg, var(--text-main), var(--color-primary-light));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }}
+            header p {{
+                font-size: 14px;
+                color: var(--text-muted);
+            }}
+            .event-badge-row {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--glass-border);
+                padding: 12px 18px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+            }}
+            .stage-badge {{
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgb(16, 185, 129);
+                color: rgb(167, 243, 208);
+            }}
+            .team-card {{
+                background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.03) 100%);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-md);
+                padding: 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }}
+            .team-card h2 {{
+                font-size: 20px;
+                font-family: 'Outfit', sans-serif;
+            }}
+            .highlight {{
+                color: var(--color-secondary);
+            }}
+            .teammates-box h3, .rationale-box h3 {{
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: var(--color-primary-light);
+                margin-bottom: 8px;
+            }}
+            .teammates-box ul {{
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }}
+            .teammates-box li {{
+                font-size: 14px;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--glass-border);
+                padding: 10px 14px;
+                border-radius: 8px;
+            }}
+            .rationale-box p {{
+                font-size: 14px;
+                line-height: 1.6;
+                font-style: italic;
+                color: var(--text-main);
+            }}
+            .status-msg {{
+                font-size: 14px;
+                color: var(--text-muted);
+                line-height: 1.5;
+            }}
+            footer {{
+                text-align: center;
+                font-size: 11px;
+                color: var(--text-muted);
+                margin-top: 10px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="portal-container">
+            <header>
+                <h1>Welcome, {participant.name}!</h1>
+                <p>Your Texas Instruments Hackathon Status & Roster Portal</p>
+            </header>
+            <div class="event-badge-row">
+                <span><strong>Event:</strong> {event.name}</span>
+                <span class="stage-badge">{event.state.value if hasattr(event.state, 'value') else event.state}</span>
+            </div>
+            {team_section}
+            <footer>
+                EventFlow Coordinator AI • Texas Instruments Hackathon
+            </footer>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 # Serve the Single Page Application dashboard at the root URL
 remove_route_by_path("/", ["GET"]) # Remove health check
