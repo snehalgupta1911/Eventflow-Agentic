@@ -1257,7 +1257,8 @@
 
                 // Toggle approve team button status
                 const approveBtn = document.getElementById("btn-approve-teams");
-                approveBtn.disabled = (event.state !== "teams_proposed");
+                const hasPendingTeams = teams.some(t => !t.is_approved);
+                approveBtn.disabled = (event.state !== "teams_proposed" && !(event.state === "active" && hasPendingTeams));
             } catch (err) {
                 console.error("Failed to load statistics", err);
             }

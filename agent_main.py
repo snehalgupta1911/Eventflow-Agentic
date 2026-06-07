@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 from typing import List
-from fastapi import Depends, HTTPException, Body, Query
+from fastapi import Depends, HTTPException, Body, Query, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -56,14 +56,26 @@ def remove_route_by_path(path: str, methods: List[str]):
 
 # Override A: Team Approval (triggers welcome email drafts)
 remove_route_by_path("/events/{event_id}/approve-teams/", ["POST"])
+def run_draft_welcome_emails_background(team_id: int, event_id: int):
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        import agent_tasks
+        agent_tasks.draft_welcome_emails_task(team_id, event_id, db)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error in background welcome email drafting: {e}")
+    finally:
+        db.close()
+
 @app.post("/events/{event_id}/approve-teams/")
-def approve_teams_override(event_id: int, db: Session = Depends(get_db)):
+def approve_teams_override(event_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
         
     event_state_val = event.state.value if hasattr(event.state, 'value') else event.state
-    if event_state_val != "teams_proposed" and event_state_val != "TEAMS_PROPOSED":
+    if event_state_val not in ["teams_proposed", "TEAMS_PROPOSED", "active", "ACTIVE"]:
         raise HTTPException(status_code=400, detail=f"Teams are not currently pending approval. State is: {event_state_val}")
 
     pending_teams = db.query(models.Team).filter(
@@ -74,22 +86,28 @@ def approve_teams_override(event_id: int, db: Session = Depends(get_db)):
     if not pending_teams:
         raise HTTPException(status_code=400, detail="No pending teams found.")
 
+    team_ids = [team.id for team in pending_teams]
+
+    # 1. Update database records instantly to release lock
     for team in pending_teams:
         team.is_approved = 1
-        # Draft welcome emails in background
-        agent_tasks.draft_welcome_emails_task(team.id, event_id, db)
 
-    # Transition event stage
-    try:
-        event.state = models.EventState.ACTIVE
-    except Exception:
-        event.state = "ACTIVE"
+    # Transition event stage if not already active
+    if event_state_val in ["teams_proposed", "TEAMS_PROPOSED"]:
+        try:
+            event.state = models.EventState.ACTIVE
+        except Exception:
+            event.state = "ACTIVE"
         
     db.commit()
 
+    # 2. Queue the slow LLM email generation tasks in the background
+    for team_id in team_ids:
+        background_tasks.add_task(run_draft_welcome_emails_background, team_id, event_id)
+
     return {
         "status": "success", 
-        "message": f"{len(pending_teams)} teams successfully approved. Welcome emails drafted.",
+        "message": f"{len(team_ids)} teams successfully approved. Welcome emails are being drafted in the background.",
         "new_event_state": event.state.value if hasattr(event.state, 'value') else event.state
     }
 
