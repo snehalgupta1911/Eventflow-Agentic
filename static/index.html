@@ -877,6 +877,18 @@
             <button class="btn-sim" id="sim-advance-btn" onclick="simulateAdvanceStage()" disabled>
                 <span>⚡</span> Advance Next Stage
             </button>
+            <div class="sim-guide" style="margin-top: 15px; font-size: 11px; color: var(--color-text-secondary); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                <strong style="color: var(--color-primary-light);">State-Machine Flow Steps:</strong>
+                <ol style="margin: 5px 0 0 15px; padding: 0;">
+                    <li>Click <strong>Create Sample Event</strong></li>
+                    <li>Click <strong>Load Roster</strong> (when state = setup)</li>
+                    <li>Click <strong>Form Teams</strong> (when state = roster_loaded)</li>
+                    <li>Go to <strong>Teams</strong> tab & click <strong>Approve Proposed Teams</strong> (when state = teams_proposed)</li>
+                    <li>Click <strong>Submit Flagged Scores</strong> (when state = active)</li>
+                    <li>Go to <strong>Score Anomalies</strong> tab to resolve flagged deviations</li>
+                    <li>Click <strong>Advance Next Stage</strong> to move to results</li>
+                </ol>
+            </div>
         </div>
     </aside>
 
