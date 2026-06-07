@@ -1155,6 +1155,21 @@
         let activeCommId = "";
         let globalCommunications = [];
 
+        function formatMarkdown(text) {
+            if (!text) return "";
+            let html = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+            html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
+            html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+            html = html.replace(/_(.*?)_/g, "<em>$1</em>");
+            html = html.replace(/`(.*?)`/g, "<code>$1</code>");
+            html = html.replace(/\n/g, "<br>");
+            return html;
+        }
+
         // Startup
         window.addEventListener("DOMContentLoaded", async () => {
             await loadEventsDropdown();
@@ -1345,7 +1360,7 @@
                 const res = await fetch(`/events/${selectedEventId}/agent/advisory`);
                 const data = await res.json();
                 
-                text.textContent = data.advisory;
+                text.innerHTML = formatMarkdown(data.advisory);
                 
                 // Check if blocked
                 const iconSpan = document.getElementById("advisor-status-icon");
@@ -1619,13 +1634,13 @@
             
             let html = "";
             if (thoughts) {
-                html += `<div class="chat-bubble-thoughts"><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5.5 5.5 0 0 0 12.5 2.5a5.5 5.5 0 0 0-5.5 5.5c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>Thoughts: ${thoughts}</div>`;
+                html += `<div class="chat-bubble-thoughts"><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5.5 5.5 0 0 0 12.5 2.5a5.5 5.5 0 0 0-5.5 5.5c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>Thoughts: ${formatMarkdown(thoughts)}</div>`;
             }
             
             if (isHtml) {
                 html += content;
             } else {
-                html += content.replace(/\n/g, "<br>");
+                html += formatMarkdown(content);
             }
             
             bubble.innerHTML = html;
