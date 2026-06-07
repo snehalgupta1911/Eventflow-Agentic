@@ -263,6 +263,15 @@
             border-color: var(--glass-border-hover);
         }
 
+        .btn-sim svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
         /* Header Area */
         header {
             display: flex;
@@ -344,6 +353,15 @@
         .btn-secondary:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.1);
             border-color: var(--glass-border-hover);
+        }
+
+        .btn-primary svg, .btn-secondary svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
         }
 
         /* Dashboard View Layouts */
@@ -461,6 +479,15 @@
 
         .advisor-header.blocked {
             color: var(--color-warning);
+        }
+
+        .advisor-header svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
         }
 
         .advisor-text {
@@ -678,6 +705,18 @@
             border-radius: 4px;
             font-weight: 600;
             font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .deviation-badge svg {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
         }
 
         .anomaly-explanation {
@@ -888,19 +927,19 @@
         <div class="simulator-panel">
             <h3>Quick Simulator</h3>
             <button class="btn-sim" onclick="simulateCreateEvent()">
-                <span style="color: var(--color-primary-light);">➕</span> Create Sample Event
+                <svg viewBox="0 0 24 24" style="stroke: var(--color-primary-light);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Create Sample Event
             </button>
             <button class="btn-sim" id="sim-roster-btn" onclick="simulateLoadRoster()" disabled>
-                <span>👤</span> Load Roster (6 pax)
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Load Roster (6 pax)
             </button>
             <button class="btn-sim" id="sim-teams-btn" onclick="simulateFormTeams()" disabled>
-                <span>👥</span> Form Teams
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Form Teams
             </button>
             <button class="btn-sim" id="sim-scores-btn" onclick="simulateScores()" disabled>
-                <span>📊</span> Submit Flagged Scores
+                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Submit Flagged Scores
             </button>
             <button class="btn-sim" id="sim-advance-btn" onclick="simulateAdvanceStage()" disabled>
-                <span>⚡</span> Advance Next Stage
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Advance Next Stage
             </button>
             <div class="sim-guide" style="margin-top: 15px; font-size: 11px; color: var(--color-text-secondary); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
                 <strong style="color: var(--color-primary-light);">State-Machine Flow Steps:</strong>
@@ -927,7 +966,9 @@
             </div>
             <div class="header-actions">
                 <span id="current-stage-badge" class="stage-badge" style="display: none;">Intake</span>
-                <button class="btn-secondary" onclick="refreshActiveView()">🔄 Refresh</button>
+                <button class="btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;" onclick="refreshActiveView()">
+                    <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh
+                </button>
             </div>
         </header>
 
@@ -936,7 +977,10 @@
             <!-- Advisory Block -->
             <div class="card glass-panel advisor-card" id="advisor-panel">
                 <div class="advisor-header" id="advisor-status-header">
-                    <span>💡</span> Operational AI Advisor
+                    <span id="advisor-status-icon" style="display: inline-flex; align-items: center;">
+                        <svg viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5.5 5.5 0 0 0 12.5 2.5a5.5 5.5 0 0 0-5.5 5.5c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>
+                    </span>
+                    <span id="advisor-status-text">Operational AI Advisor</span>
                 </div>
                 <div class="advisor-text" id="advisor-text">
                     Select an event to run the diagnostics advisor.
@@ -1011,8 +1055,8 @@
                         </div>
                         <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; overflow-y: auto; flex-grow: 1;" id="agent-actions-log">
                             <div class="empty-state">
-                                <span>🤖</span>
-                                No actions executed yet. Instruct the agent to run tasks.
+                                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+                                <span>No actions executed yet. Instruct the agent to run tasks.</span>
                             </div>
                         </div>
                     </div>
@@ -1304,12 +1348,16 @@
                 text.textContent = data.advisory;
                 
                 // Check if blocked
+                const iconSpan = document.getElementById("advisor-status-icon");
+                const textSpan = document.getElementById("advisor-status-text");
                 if (data.advisory.toLowerCase().includes("blocked") || data.advisory.toLowerCase().includes("unresolved")) {
                     panel.classList.add("blocked");
-                    header.innerHTML = "⚠️ Operational AI Advisor - Attention Required";
+                    iconSpan.innerHTML = `<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+                    textSpan.textContent = "Operational AI Advisor - Attention Required";
                 } else {
                     panel.classList.remove("blocked");
-                    header.innerHTML = "💡 Operational AI Advisor - Pipeline Clear";
+                    iconSpan.innerHTML = `<svg viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5.5 5.5 0 0 0 12.5 2.5a5.5 5.5 0 0 0-5.5 5.5c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>`;
+                    textSpan.textContent = "Operational AI Advisor - Pipeline Clear";
                 }
             } catch (err) {
                 text.textContent = "Failed to load stage advisory diagnostics.";
@@ -1349,8 +1397,8 @@
                                     <span style="color: var(--text-muted); font-size: 11px;">Exp: ${m.profile_data.experience_level || 0} yrs</span>
                                 </div>
                                 <div class="member-meta">
-                                    <span>🏛️ ${m.profile_data.institution || 'Unknown'}</span>
-                                    <span>🛠️ ${skills.join(", ")}</span>
+                                    <span><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>${m.profile_data.institution || 'Unknown'}</span>
+                                    <span><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>${skills.join(", ")}</span>
                                 </div>
                             </li>`;
                     });
@@ -1414,7 +1462,7 @@
                         <td>${a.judge_id}</td>
                         <td style="color: var(--color-danger); font-weight: bold;">${a.flagged_score.toFixed(1)}</td>
                         <td>${a.panel_average.toFixed(1)}</td>
-                        <td><span class="deviation-badge">⚠️ ${a.deviation.toFixed(1)}</span></td>
+                        <td><span class="deviation-badge"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${a.deviation.toFixed(1)}</span></td>
                         <td class="anomaly-explanation">${explanationText}</td>
                         <td>
                             ${a.resolved ? 
@@ -1459,9 +1507,9 @@
                         <div class="comm-meta">
                             <span class="comm-title">${c.subject}</span>
                             <div class="comm-details">
-                                <span>📧 Recipient: ${c.recipient_email}</span>
-                                <span>🏷️ Stage: ${c.stage}</span>
-                                ${c.sent_at ? `<span>📅 Sent: ${new Date(c.sent_at).toLocaleTimeString()}</span>` : ''}
+                                <span><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Recipient: ${c.recipient_email}</span>
+                                <span><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Stage: ${c.stage}</span>
+                                ${c.sent_at ? `<span><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Sent: ${new Date(c.sent_at).toLocaleTimeString()}</span>` : ''}
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -1521,7 +1569,7 @@
             const message = input.value.trim();
             if (!message) return;
             if (!selectedEventId) {
-                alert("No active event selected. Please create a sample event first using the '➕ Create Sample Event' button in the left sidebar under 'Quick Simulator'.");
+                alert("No active event selected. Please create a sample event first using the 'Create Sample Event' button in the left sidebar under 'Quick Simulator'.");
                 return;
             }
 
@@ -1571,7 +1619,7 @@
             
             let html = "";
             if (thoughts) {
-                html += `<div class="chat-bubble-thoughts">💡 Thoughts: ${thoughts}</div>`;
+                html += `<div class="chat-bubble-thoughts"><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5.5 5.5 0 0 0 12.5 2.5a5.5 5.5 0 0 0-5.5 5.5c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>Thoughts: ${thoughts}</div>`;
             }
             
             if (isHtml) {
@@ -1597,7 +1645,7 @@
                 box.style.paddingBottom = "12px";
                 box.style.marginBottom = "12px";
                 box.innerHTML = `
-                    <div style="font-weight: 600; color: var(--color-primary-light); margin-bottom: 4px;">🛠️ Tool: ${a.tool}</div>
+                    <div style="font-weight: 600; color: var(--color-primary-light); margin-bottom: 4px;"><svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tool: ${a.tool}</div>
                     <div style="margin-bottom: 4px;">Args: <pre style="background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px; font-size:10px;">${JSON.stringify(a.args, null, 2)}</pre></div>
                     <div>Result: <pre style="background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px; font-size:10px;">${JSON.stringify(a.result, null, 2)}</pre></div>
                 `;
