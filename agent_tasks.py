@@ -93,6 +93,18 @@ class MockGeminiModel:
         else:
             return MockResponse("Mock response for prompt: " + str(prompt[:50]))
 
+class QuotaFallbackModel:
+    def __init__(self, real_model):
+        self.real_model = real_model
+        self.mock_model = MockGeminiModel()
+
+    def generate_content(self, prompt, **kwargs):
+        try:
+            return self.real_model.generate_content(prompt, **kwargs)
+        except Exception as e:
+            logger.warning(f"Gemini API execution error: {e}. Falling back to MockGeminiModel.")
+            return self.mock_model.generate_content(prompt, **kwargs)
+
 def get_gemini_model():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -109,7 +121,8 @@ def get_gemini_model():
             "temperature": 0.4,
             "max_output_tokens": 1024,
         }
-        return genai.GenerativeModel(model_name=target_model, generation_config=generation_config)
+        real_model = genai.GenerativeModel(model_name=target_model, generation_config=generation_config)
+        return QuotaFallbackModel(real_model)
     except Exception as e:
         logger.error(f"Error initializing Gemini API: {e}. Falling back to MockGeminiModel.")
         return MockGeminiModel()
