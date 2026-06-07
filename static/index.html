@@ -15,32 +15,49 @@
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-header: 'Outfit', sans-serif;
             
-            --bg-base: #09090b;
+            --bg-base: #030306;
             --bg-grid: rgba(79, 70, 229, 0.03);
             
-            /* HSL Theme Colors (Indigo & Violet) */
-            --color-primary: hsl(243, 75%, 59%);
-            --color-primary-light: hsl(243, 75%, 70%);
-            --color-secondary: hsl(262, 83%, 58%);
-            --color-success: hsl(142, 71%, 45%);
-            --color-warning: hsl(38, 92%, 50%);
-            --color-danger: hsl(346, 84%, 50%);
+            /* Premium Cyber Neon Palette */
+            --color-primary: hsl(250, 89%, 60%);
+            --color-primary-light: hsl(250, 95%, 75%);
+            --color-secondary: hsl(186, 100%, 45%); /* Electric Turquoise */
+            --color-success: hsl(150, 84%, 44%); /* Emerald */
+            --color-warning: hsl(40, 95%, 52%); /* Gold */
+            --color-danger: hsl(355, 88%, 56%); /* Crimson Coral */
             
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-            --text-dark: #27272a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #1e293b;
             
-            --glass-bg: rgba(20, 20, 25, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-border-hover: rgba(255, 255, 255, 0.15);
+            --glass-bg: rgba(8, 8, 12, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-border-hover: rgba(255, 255, 255, 0.12);
             
             --sidebar-width: 280px;
             --header-height: 80px;
             
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 50px -10px rgba(79, 70, 229, 0.05);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            transition: var(--transition-smooth);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary-light);
         }
 
         /* Base Resets & Layout */
@@ -54,25 +71,33 @@
             font-family: var(--font-main);
             background-color: var(--bg-base);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
-                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.2) 0px, transparent 55%),
+                radial-gradient(at 100% 0%, rgba(0, 240, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             overflow-x: hidden;
         }
 
-        /* Glassmorphism utility */
+        /* Glassmorphism utility with premium hover effect */
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-premium);
+            transition: var(--transition-smooth);
+        }
+        
+        .glass-panel:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 240, 255, 0.03);
+            transform: translateY(-2px);
         }
 
         /* App Container Layout */
