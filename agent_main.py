@@ -116,7 +116,30 @@ remove_route_by_path("/events/{event_id}/form-teams/", ["POST"])
 @app.post("/events/{event_id}/form-teams/", response_model=List[schemas.TeamResponse])
 def form_teams_override(event_id: int, db: Session = Depends(get_db)):
     try:
+        # Clear existing unapproved teams and rationales to allow reforming teams with new rules
+        existing_unapproved_teams = db.query(models.Team).filter(
+            models.Team.event_id == event_id,
+            models.Team.is_approved == 0
+        ).all()
+        for team in existing_unapproved_teams:
+            for member in team.members:
+                member.team_id = None
+            db.delete(team)
+            
+        # Clean up related welcome email drafts
+        db.query(agent_models.CommunicationLog).filter(
+            agent_models.CommunicationLog.event_id == event_id,
+            agent_models.CommunicationLog.stage == "welcome",
+            agent_models.CommunicationLog.status == "draft"
+        ).delete(synchronize_session=False)
+        db.commit()
+
         teams = services.generate_teams_algorithmically(event_id, db)
+        
+        # Start rationale generation for each team in background
+        for team in teams:
+            agent_tasks.generate_team_rationale_task(team.id, event_id, db)
+
         # Convert to Pydantic models while the database session is still open
         return [schemas.TeamResponse.model_validate(team) for team in teams]
     except ValueError as e:

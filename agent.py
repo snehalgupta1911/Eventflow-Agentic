@@ -123,6 +123,24 @@ def trigger_team_formation(event_id: int, db: Session) -> dict:
         return {"error": f"Event {event_id} not found."}
         
     try:
+        # Clear existing unapproved teams and rationales to allow reforming teams with new rules
+        existing_unapproved_teams = db.query(models.Team).filter(
+            models.Team.event_id == event_id,
+            models.Team.is_approved == 0
+        ).all()
+        for team in existing_unapproved_teams:
+            for member in team.members:
+                member.team_id = None
+            db.delete(team)
+            
+        # Clean up related welcome email drafts
+        db.query(agent_models.CommunicationLog).filter(
+            agent_models.CommunicationLog.event_id == event_id,
+            agent_models.CommunicationLog.stage == "welcome",
+            agent_models.CommunicationLog.status == "draft"
+        ).delete(synchronize_session=False)
+        db.commit()
+
         # Run service team builder
         teams = services.generate_teams_algorithmically(event_id, db)
         
