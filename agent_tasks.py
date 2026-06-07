@@ -103,26 +103,7 @@ def get_gemini_model():
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         
-        # Auto-select the best available model
-        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        
-        target_model = None
-        for m in available_models:
-            if "1.5-flash" in m:
-                target_model = m
-                break
-            elif "1.0-pro" in m:
-                target_model = m
-                break
-            elif "gemini-pro" in m:
-                target_model = m
-                break
-                
-        if not target_model and available_models:
-            target_model = available_models[0]
-            
-        if not target_model:
-            target_model = "gemini-1.5-flash"
+        target_model = "gemini-1.5-flash"
             
         generation_config = {
             "temperature": 0.4,

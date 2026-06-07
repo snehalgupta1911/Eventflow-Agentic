@@ -1069,6 +1069,7 @@
         let selectedEventId = "";
         let chatHistory = [];
         let activeCommId = "";
+        let globalCommunications = [];
 
         // Startup
         window.addEventListener("DOMContentLoaded", async () => {
@@ -1405,7 +1406,8 @@
                 }
 
                 list.innerHTML = "";
-                comms.forEach(c => {
+                globalCommunications = comms; // Store communications list globally
+                comms.forEach((c, idx) => {
                     const item = document.createElement("div");
                     item.className = "card glass-panel comm-item";
                     
@@ -1420,7 +1422,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <span class="comm-status-badge status-${c.status}">${c.status}</span>
-                            <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="previewEmail('${c.id}', '${c.recipient_email}', \`${c.subject.replace(/'/g, "\\'")}\`, \`${c.content.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`, '${c.status}')">Preview</button>
+                            <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="previewEmail(${idx})">Preview</button>
                         </div>
                     `;
                     list.appendChild(item);
@@ -1431,14 +1433,17 @@
         }
 
         // Email preview helper
-        function previewEmail(id, recipient, subject, content, status) {
-            activeCommId = id;
-            document.getElementById("preview-subject").textContent = subject;
-            document.getElementById("preview-recipient").textContent = `To: ${recipient}`;
-            document.getElementById("preview-body").textContent = content;
+        function previewEmail(idx) {
+            const c = globalCommunications[idx];
+            if (!c) return;
+            
+            activeCommId = c.id;
+            document.getElementById("preview-subject").textContent = c.subject;
+            document.getElementById("preview-recipient").textContent = `To: ${c.recipient_email}`;
+            document.getElementById("preview-body").textContent = c.content;
             
             const sendBtn = document.getElementById("btn-dialog-send");
-            if (status === "sent") {
+            if (c.status === "sent") {
                 sendBtn.disabled = true;
                 sendBtn.textContent = "Sent";
             } else {
